@@ -1,0 +1,2 @@
+strategy,seeds,reward_mean,reward_std,n_violations_mean,n_violations_std,violation_free_pct_mean,violation_free_pct_std,v_max_mean,v_max_std,p_kw_mean,p_kw_std,curtailment_pct_mean,curtailment_pct_std,q_abs_kvar_mean,q_abs_kvar_std
+PPO (3 seeds),3,400.203,12.934,1.21111,0.936243,78.3333,10.6393,1.04684,0.000500299,1400.67,140.919,35.0136,6.42069,801.682,165.105
