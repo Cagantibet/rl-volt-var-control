@@ -1,0 +1,6 @@
+numpy>=2.0
+matplotlib>=3.8
+torch>=2.2
+opendssdirect.py>=0.9
+pyyaml>=6.0
+pytest>=8.0

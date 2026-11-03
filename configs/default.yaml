@@ -1,0 +1,89 @@
+# Default experiment configuration.
+# Relative paths are resolved against the repository root (the parent of configs/).
+
+seed: 0            # training seed: network init, action sampling, training-day sampling
+scenario_seed: 0   # seeds the random load/irradiance profiles; kept fixed so every training
+                   # seed is validated and tested on identical scenarios
+
+feeder:
+  master: data/ieee123/IEEE123Master.dss
+  # All voltage regulators are locked at this tap and their RegControls disabled, so the
+  # inverters are the only voltage-control devices. Tap 4 = +2.5 % (each step is 0.625 %).
+  regulator_tap: 4
+  voltage_band: [0.95, 1.05]
+
+pv:
+  kva: 200.0          # inverter rating per PV system
+  pmpp: 180.0         # DC array rating at 1 kW/m^2 (kVA/Pmpp = 1.11)
+  kv: 2.4             # single-phase line-to-neutral kV
+  cutin_pct: 1.0      # inverter cut-in/cut-out (% of kVA). OpenDSS defaults to 20 %.
+  q_max_pu: 0.44      # IEEE 1547-2018 Category B reactive capability (pu of kVA)
+  # 15 single-phase PV systems: bus numbers per phase
+  sites:
+    a: [1, 8, 10, 11, 20]
+    b: [22, 39, 43, 48, 59]
+    c: [4, 6, 16, 17, 24]
+
+profiles:
+  # Hourly load multiplier (hour 0..23) applied to every load, plus per-hour Gaussian noise.
+  load_base: [0.20, 0.20, 0.20, 0.20, 0.25, 0.30, 0.40, 0.50,
+              0.60, 0.65, 0.70, 0.70, 0.65, 0.55, 0.50, 0.45,
+              0.50, 0.70, 0.90, 1.00, 0.85, 0.70, 0.50, 0.30]
+  load_noise: [0.02, 0.02, 0.02, 0.02, 0.03, 0.04, 0.05, 0.06,
+               0.04, 0.03, 0.03, 0.04, 0.05, 0.06, 0.05, 0.04,
+               0.06, 0.08, 0.10, 0.12, 0.08, 0.06, 0.04, 0.03]
+  load_clip: [0.15, 1.15]
+  # Irradiance: clear-sky sine between sunrise and sunset, scaled by a daily clearness index
+  # (shared by all PVs) and multiplicative per-PV, per-hour noise.
+  sunrise: 6
+  sunset: 18
+  clearness_range: [0.7, 1.0]
+  irradiance_noise: 0.05
+
+curves:
+  # Ranges the PPO action ([-1, 1]) is mapped to.
+  vv_voltage_range: [0.90, 1.10]
+  vw_voltage_range: [1.00, 1.10]
+  vw_p_min: 0.0
+
+reward:
+  ideal_band: [0.98, 1.02]
+  ideal_bonus: 2.0            # per node voltage inside the ideal band
+  acceptable_bonus: 0.5       # per node voltage inside the ANSI band but outside the ideal band
+  undervoltage_weight: 100.0  # per pu below the lower limit, per node
+  overvoltage_weight: 150.0   # per pu above the upper limit, per node
+  violation_penalty: 5.0      # per violating node
+  utilization_weight_ok: 100.0   # weight on P / fleet Pmpp when there are no violations
+  utilization_weight_bad: 20.0   # ... and when there are violations
+  balance_bonus: [3.0, 1.5]      # bonus when std(V) < 0.01 / < 0.02
+  reactive_weight: 2.5           # penalty on sum|Q| / fleet Q capability
+
+env:
+  steps_per_episode: 10
+  damping: 0.5                      # fraction of the way each inverter moves toward its curve target per step
+  hours: [10, 11, 12, 13, 14, 15]   # hours used for training, validation and testing
+  train_days: [1, 500]              # inclusive ranges of day indices (each day = new random profiles)
+  val_days: [1001, 1005]
+  test_days: [2001, 2020]
+
+ppo:
+  hidden_dim: 128
+  init_std: 0.2
+  min_std: 0.01
+  max_std: 0.5
+  lr: 3.0e-4
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_eps: 0.2
+  epochs: 10
+  minibatch_size: 256
+  rollout_steps: 2000
+  value_coef: 0.5
+  entropy_coef: 0.0
+  max_grad_norm: 0.5
+  reward_scale: 0.01          # rewards are multiplied by this for learning only
+
+train:
+  total_steps: 1000000
+  eval_every: 25000
+  output_dir: runs/default

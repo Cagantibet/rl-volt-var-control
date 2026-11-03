@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voltvar-rl"
+version = "1.0.0"
+description = "PPO-tuned Volt/VAR and Volt/Watt curves for PV inverters on the IEEE 123-node feeder (OpenDSS)"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.0",
+    "matplotlib>=3.8",
+    "torch>=2.2",
+    "opendssdirect.py>=0.9",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+voltvar-rl = "voltvar_rl.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
